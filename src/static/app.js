@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     return `<li class="participant-item">
                                 <span class="avatar" aria-hidden="true">${initials}</span>
                                 <span class="participant-name">${participant}</span>
+                                <button class="delete-participant" title="Remove participant" data-activity="${name}" data-email="${participant}">&#128465;</button>
                               </li>`;
                   })
                   .join("")}
@@ -52,6 +53,29 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
 
         activitiesList.appendChild(activityCard);
+
+        // Event Delegation für Delete-Buttons
+        activityCard.addEventListener("click", async (e) => {
+          if (e.target.classList.contains("delete-participant")) {
+            const email = e.target.getAttribute("data-email");
+            const activity = e.target.getAttribute("data-activity");
+            if (confirm(`Remove ${email} from ${activity}?`)) {
+              try {
+                const response = await fetch(`/activities/${encodeURIComponent(activity)}/unregister?email=${encodeURIComponent(email)}`, {
+                  method: "DELETE",
+                });
+                const result = await response.json();
+                if (response.ok) {
+                  fetchActivities();
+                } else {
+                  alert(result.detail || "Could not remove participant.");
+                }
+              } catch (err) {
+                alert("Error removing participant.");
+              }
+            }
+          }
+        });
 
         // Add option to select dropdown
         const option = document.createElement("option");
